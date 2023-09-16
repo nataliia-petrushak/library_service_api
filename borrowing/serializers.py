@@ -1,7 +1,9 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from .models import Borrowing
+from book.models import Book
 from book.serializers import BookSerializer
 
 
@@ -28,6 +30,14 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "book_id",
             "user_id"
         )
+        extra_kwargs = {"user_id": {"read_only": True}}
+
+    def create(self, validated_data):
+        book_id = validated_data.get("book_id")
+        book = get_object_or_404(Book, pk=book_id)
+        book.inventory -= 1
+        book.save()
+        return Borrowing.objects.create(**validated_data)
 
 
 class BorrowingDetailSerializer(BorrowingSerializer):
