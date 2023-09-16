@@ -41,9 +41,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
 
 class BorrowingDetailSerializer(BorrowingSerializer):
-    borrow_date = serializers.DateField(format="%Y-%m-%d", required=False)
-    actual_return_date = serializers.DateField(format="%Y-%m-%d", required=False)
-    expected_return_date = serializers.DateField(format="%Y-%m-%d", required=False)
+    actual_return_date = serializers.DateField(format="%Y-%m-%d")
     book = BookSerializer(read_only=True)
 
     class Meta:
@@ -54,5 +52,7 @@ class BorrowingDetailSerializer(BorrowingSerializer):
             "expected_return_date",
             "actual_return_date",
             "book",
+            "book_id",
             "user_id"
         )
+        extra_kwargs = {"book_id": {"write_only": True}}
