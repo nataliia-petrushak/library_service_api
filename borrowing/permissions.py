@@ -9,9 +9,6 @@ class IsAuthenticatedOrIsAdmin(BasePermission):
                 and request.user
                 and request.user.is_authenticated
             )
-            or (
-                    request.method in ["PUT", "GET", "PATCH"]
-                    and request.user
-                    and request.user.is_staff
+            or (request.user and request.user.is_staff
                 )
         )
