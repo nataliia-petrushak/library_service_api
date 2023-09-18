@@ -1,4 +1,11 @@
-from rest_framework import generics, viewsets
+from datetime import date
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import get_object_or_404
+
+from book.models import Book
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .permissions import IsAuthenticatedOrIsAdmin
 from .serializers import (
@@ -43,3 +50,24 @@ class BorrowingViewSet(
         if self.action in ["retrieve", "update", "partial_update"]:
             return BorrowingDetailSerializer
         return self.serializer_class
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def return_borrowing(request, pk):
+    borrowing = get_object_or_404(Borrowing, pk=pk)
+    book = get_object_or_404(Book, pk=borrowing.book_id)
+
+    if not borrowing.actual_return_date:
+        book.inventory += 1
+        book.save()
+        borrowing.actual_return_date = date.today()
+        borrowing.save()
+        return Response(
+            {"message": "You have successfully returned this book!"},
+            status=status.HTTP_200_OK,
+        )
+    return Response(
+        {"message": "You have already returned this book!"},
+        status=status.HTTP_405_METHOD_NOT_ALLOWED
+    )
