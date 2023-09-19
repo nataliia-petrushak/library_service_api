@@ -1,11 +1,14 @@
+import datetime
+
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.generics import get_object_or_404
 
-from .notifications import send_borrowing_notification
 from book.models import Book
 from user.models import User
+
+from borrowing.management.commands.send_notification import notification
 
 
 class Borrowing(models.Model):
@@ -31,6 +34,12 @@ class Borrowing(models.Model):
 
 
 @receiver(post_save, sender=Borrowing)
-def notifications(sender, instance, created, **kwargs):
-    send_borrowing_notification(sender, instance, created, **kwargs)
-
+def create_borrowing_notifications(sender, instance, created, **kwargs):
+    book = get_object_or_404(Book, pk=instance.book_id)
+    message = f"You have borrowed a book:\n'{book.title}'." \
+              f"\nExpected return date:" \
+              f"\n{instance.expected_return_date}\n" \
+              f"Price:\n" \
+              f"{book.daily_fee} $"
+    if created:
+        notification(message)
