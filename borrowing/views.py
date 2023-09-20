@@ -47,7 +47,7 @@ class BorrowingViewSet(
         return self.queryset
 
     def get_serializer_class(self):
-        if self.action in ["retrieve", "update", "partial_update"]:
+        if self.action == "retrieve":
             return BorrowingDetailSerializer
         return self.serializer_class
 

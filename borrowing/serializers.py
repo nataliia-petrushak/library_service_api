@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -61,8 +60,6 @@ class BorrowingDetailSerializer(BorrowingSerializer):
             "expected_return_date",
             "actual_return_date",
             "book",
-            "book_id",
             "user_id",
             "payment",
         )
-        extra_kwargs = {"book_id": {"write_only": True}}
