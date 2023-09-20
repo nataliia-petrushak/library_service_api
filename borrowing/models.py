@@ -1,5 +1,3 @@
-import datetime
-
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -7,6 +5,7 @@ from rest_framework.generics import get_object_or_404
 
 from book.models import Book
 from user.models import User
+from payment.models import Payment
 
 from borrowing.management.commands.send_notification import notification
 
@@ -25,6 +24,10 @@ class Borrowing(models.Model):
     @property
     def user(self) -> User:
         return get_object_or_404(User, pk=self.user_id)
+
+    @property
+    def payment(self) -> Payment:
+        return get_object_or_404(Payment, borrowing_id=self.pk)
 
     @staticmethod
     def validate_inventory(book_id, error_to_raise):
