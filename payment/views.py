@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Payment
@@ -9,13 +9,17 @@ from .serializers import (
 )
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
+class PaymentViewSet(
+    generics.ListAPIView,
+    generics.RetrieveAPIView,
+    viewsets.GenericViewSet
+):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    authentication_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
-    def get_object(self):
-        return Payment.object.create(user_id=self.request.user.id)
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.user.id)
 
     def get_queryset(self):
         if not self.request.user.is_staff:
@@ -27,4 +31,4 @@ class PaymentViewSet(viewsets.ModelViewSet):
             return PaymentListSerializer
         if self.action == "retrieve":
             return PaymentDetailSerializer
-
+        return self.serializer_class
