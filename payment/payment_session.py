@@ -41,4 +41,3 @@ def create_payment(borrowing):
         session_id=session.id,
         money_to_pay=borrowing.book.daily_fee
     )
-

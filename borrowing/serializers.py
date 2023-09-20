@@ -13,7 +13,9 @@ from payment.serializers import (
 
 class BorrowingSerializer(serializers.ModelSerializer):
     borrow_date = serializers.DateField(format="%Y-%m-%d", read_only=True)
-    actual_return_date = serializers.DateField(format="%Y-%m-%d", read_only=True)
+    actual_return_date = serializers.DateField(
+        format="%Y-%m-%d", read_only=True
+    )
     expected_return_date = serializers.DateField(format="%Y-%m-%d")
     payment = PaymentListSerializer(read_only=True)
 

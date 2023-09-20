@@ -8,7 +8,7 @@ router.register("", BorrowingViewSet)
 
 urlpatterns = [
     path("<int:pk>/return/", return_borrowing, name="return-borrowing")
-              ] + router.urls
+] + router.urls
 
 
 app_name = "borrowing"

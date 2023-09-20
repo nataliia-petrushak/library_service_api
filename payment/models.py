@@ -1,7 +1,5 @@
 from django.db import models
 
-from rest_framework.generics import get_object_or_404
-
 
 class Payment(models.Model):
     STATUS_CHOICE = [("PENDING", "Pending"), ("PAID", "Paid")]
