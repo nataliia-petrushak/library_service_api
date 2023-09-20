@@ -5,12 +5,18 @@ from rest_framework.exceptions import ValidationError
 from .models import Borrowing
 from book.models import Book
 from book.serializers import BookSerializer
+from payment.payment_session import create_payment
+from payment.serializers import (
+    PaymentListSerializer,
+    PaymentDetailSerializer
+)
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
     borrow_date = serializers.DateField(format="%Y-%m-%d", read_only=True)
     actual_return_date = serializers.DateField(format="%Y-%m-%d", read_only=True)
     expected_return_date = serializers.DateField(format="%Y-%m-%d")
+    payment = PaymentListSerializer(read_only=True)
 
     def validate(self, attrs):
         data = super(BorrowingSerializer, self).validate(attrs=attrs)
@@ -28,21 +34,26 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "expected_return_date",
             "actual_return_date",
             "book_id",
-            "user_id"
+            "user_id",
+            "payment",
         )
-        extra_kwargs = {"user_id": {"read_only": True}}
+        extra_kwargs = {
+            "user_id": {"read_only": True}}
 
     def create(self, validated_data):
         book_id = validated_data.get("book_id")
         book = get_object_or_404(Book, pk=book_id)
         book.inventory -= 1
         book.save()
-        return Borrowing.objects.create(**validated_data)
+        borrowing = Borrowing.objects.create(**validated_data)
+        create_payment(borrowing)
+        return borrowing
 
 
 class BorrowingDetailSerializer(BorrowingSerializer):
     actual_return_date = serializers.DateField(format="%Y-%m-%d")
     book = BookSerializer(read_only=True)
+    payment = PaymentDetailSerializer(read_only=True)
 
     class Meta:
         model = Borrowing
@@ -53,6 +64,7 @@ class BorrowingDetailSerializer(BorrowingSerializer):
             "actual_return_date",
             "book",
             "book_id",
-            "user_id"
+            "user_id",
+            "payment",
         )
         extra_kwargs = {"book_id": {"write_only": True}}
