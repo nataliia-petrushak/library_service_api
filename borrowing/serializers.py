@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from .models import Borrowing
-from book.models import Book
+from book.models import amount_of_inventory
 from book.serializers import BookSerializer
 from payment.payment_session import create_payment
 from payment.serializers import (
@@ -42,9 +42,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         book_id = validated_data.get("book_id")
-        book = get_object_or_404(Book, pk=book_id)
-        book.inventory -= 1
-        book.save()
+        amount_of_inventory(book_id)
         borrowing = Borrowing.objects.create(**validated_data)
         create_payment(borrowing)
         return borrowing
