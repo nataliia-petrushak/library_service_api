@@ -62,22 +62,18 @@ def return_borrowing(request, pk):
 
     if not borrowing.actual_return_date:
         borrowing.actual_return_date = date.today()
-        borrowing.save()
-        amount_of_inventory(borrowing.book_id, increase=True)
 
         if borrowing.expected_return_date < borrowing.actual_return_date:
             fine = borrowing.fine
             create_payment(
                 borrowing, request, payment_type="FINE", payment=fine
             )
-            return Response({
-                "message": f"You have to pay a fine {fine}$ to return a book."
-            })
 
-        return Response(
-            {"message": f"You have successfully returned this book!"},
-            status=status.HTTP_200_OK,
-        )
+        borrowing.save()
+        amount_of_inventory(borrowing.book_id, increase=True)
+        serializer = BorrowingSerializer(borrowing)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     return Response(
         {"message": "You have already returned this book!"},
         status=status.HTTP_405_METHOD_NOT_ALLOWED
