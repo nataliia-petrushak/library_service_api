@@ -7,8 +7,7 @@ from .models import Payment
 stripe.api_key = os.getenv("STRIPE_API_KEY")
 
 
-def create_payment_session(borrowing, request):
-    total_price = int(borrowing.book.daily_fee * 100)
+def create_payment_session(borrowing, request, payment):
 
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
@@ -16,7 +15,7 @@ def create_payment_session(borrowing, request):
             {
                 "price_data": {
                     "currency": "usd",
-                    "unit_amount": total_price,
+                    "unit_amount": int(payment * 100),
                     "product_data": {
                         "name": borrowing.book.title
                     },
@@ -35,14 +34,23 @@ def create_payment_session(borrowing, request):
     return session
 
 
-def create_payment(borrowing, request):
-    session = create_payment_session(borrowing, request)
+def create_payment(
+        borrowing,
+        request,
+        payment_type: str = "PAYMENT",
+        payment=None
+):
+
+    if not payment:
+        payment = borrowing.book.daily_fee
+
+    session = create_payment_session(borrowing, request, payment)
     Payment.objects.create(
         status="PENDING",
-        type="PAYMENT",
+        type=payment_type,
         borrowing_id=borrowing.id,
         user_id=borrowing.user_id,
         session_url=session.url,
         session_id=session.id,
-        money_to_pay=borrowing.book.daily_fee
+        money_to_pay=payment
     )
