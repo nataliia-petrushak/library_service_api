@@ -11,6 +11,7 @@ from .serializers import (
     PaymentListSerializer,
     PaymentDetailSerializer
 )
+from borrowing.notifications import send_payment_notification
 
 
 class PaymentViewSet(
@@ -47,6 +48,7 @@ def success_payment(request):
         payment = get_object_or_404(Payment, session_id=session_id)
         payment.status = "PAID"
         payment.save()
+        send_payment_notification(payment)
 
 
 @api_view(["GET"])
