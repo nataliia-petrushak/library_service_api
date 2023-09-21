@@ -30,3 +30,9 @@ def send_overdue_borrowing_notification():
                   f"by that time."
         notification(message)
         logger.info(f"The message was successfully sent")
+
+
+def send_payment_notification(payment):
+    message = f"You have successfully paid {payment.money_to_pay}$\n" \
+              f"Your borrowing ID: {payment.borrowing_id}"
+    notification(message)
