@@ -17,7 +17,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
         format="%Y-%m-%d", read_only=True
     )
     expected_return_date = serializers.DateField(format="%Y-%m-%d")
-    payment = PaymentListSerializer(read_only=True)
+    payment = PaymentListSerializer(read_only=True, many=True)
 
     def validate(self, attrs):
         data = super(BorrowingSerializer, self).validate(attrs=attrs)
@@ -53,7 +53,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
 class BorrowingDetailSerializer(BorrowingSerializer):
     actual_return_date = serializers.DateField(format="%Y-%m-%d")
     book = BookSerializer(read_only=True)
-    payment = PaymentDetailSerializer(read_only=True)
+    payment = PaymentDetailSerializer(read_only=True, many=True)
 
     class Meta:
         model = Borrowing
