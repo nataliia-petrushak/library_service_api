@@ -1,12 +1,13 @@
 import os
 import stripe
+from rest_framework.reverse import reverse
 
 from .models import Payment
 
-stripe.api_key = os.getenv("API_KEY")
+stripe.api_key = os.getenv("STRIPE_API_KEY")
 
 
-def create_payment_session(borrowing):
+def create_payment_session(borrowing, request):
     total_price = int(borrowing.book.daily_fee * 100)
 
     session = stripe.checkout.Session.create(
@@ -24,14 +25,18 @@ def create_payment_session(borrowing):
             }
         ],
         mode="payment",
-        success_url="http://localhost:8000/api/payments/",
-        cancel_url="http://localhost:8000/api/payments/"
+        success_url=request.build_absolute_uri(
+            reverse("payment:success-payment"
+                    )) + f"?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=request.build_absolute_uri(
+            reverse("payment:cancel-payment")
+        )
     )
     return session
 
 
-def create_payment(borrowing):
-    session = create_payment_session(borrowing)
+def create_payment(borrowing, request):
+    session = create_payment_session(borrowing, request)
     Payment.objects.create(
         status="PENDING",
         type="PAYMENT",
