@@ -3,6 +3,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 
+from payment.payment_session import create_payment
 from book.models import amount_of_inventory
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -60,11 +61,21 @@ def return_borrowing(request, pk):
     borrowing = get_object_or_404(Borrowing, pk=pk)
 
     if not borrowing.actual_return_date:
-        amount_of_inventory(borrowing.book_id, increase=True)
         borrowing.actual_return_date = date.today()
         borrowing.save()
+        amount_of_inventory(borrowing.book_id, increase=True)
+
+        if borrowing.expected_return_date < borrowing.actual_return_date:
+            fine = borrowing.fine
+            create_payment(
+                borrowing, request, payment_type="FINE", payment=fine
+            )
+            return Response({
+                "message": f"You have to pay a fine {fine}$ to return a book."
+            })
+
         return Response(
-            {"message": "You have successfully returned this book!"},
+            {"message": f"You have successfully returned this book!"},
             status=status.HTTP_200_OK,
         )
     return Response(
