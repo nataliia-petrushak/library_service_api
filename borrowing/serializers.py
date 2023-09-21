@@ -42,10 +42,11 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "user_id": {"read_only": True}}
 
     def create(self, validated_data):
+        request = self.context.get("request")
         book_id = validated_data.get("book_id")
         amount_of_inventory(book_id)
         borrowing = Borrowing.objects.create(**validated_data)
-        create_payment(borrowing)
+        create_payment(borrowing, request)
         return borrowing
 
 
