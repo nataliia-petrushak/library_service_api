@@ -11,6 +11,8 @@ from .serializers import (
     PaymentListSerializer,
     PaymentDetailSerializer
 )
+from .payment_session import create_payment
+from borrowing.models import Borrowing
 from borrowing.notifications import send_payment_notification
 
 
@@ -57,3 +59,19 @@ def cancel_payment(request):
         "message": "Payment failed. "
                    "Please proceed with the payment within 24 hours"
     })
+
+
+@api_view(["POST"])
+def renew_payment_session(request, pk):
+    old_payment = get_object_or_404(Payment, pk=pk)
+    borrowing = get_object_or_404(Borrowing, pk=old_payment.borrowing_id)
+
+    new_payment = create_payment(
+        borrowing,
+        request,
+        payment_type=old_payment.type,
+        total=old_payment.money_to_pay
+    )
+
+    serializer = PaymentSerializer(new_payment)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
