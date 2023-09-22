@@ -1,5 +1,7 @@
 import os
 import stripe
+from django.db import transaction
+from django.utils import timezone
 from rest_framework.reverse import reverse
 
 from .models import Payment
@@ -7,15 +9,14 @@ from .models import Payment
 stripe.api_key = os.getenv("STRIPE_API_KEY")
 
 
-def create_payment_session(borrowing, request, payment):
-
-    session = stripe.checkout.Session.create(
+def create_stripe_session(borrowing, request, total):
+    return stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
             {
                 "price_data": {
                     "currency": "usd",
-                    "unit_amount": int(payment * 100),
+                    "unit_amount": int(total * 100),
                     "product_data": {
                         "name": borrowing.book.title
                     },
@@ -35,14 +36,11 @@ def create_payment_session(borrowing, request, payment):
 
 
 def create_payment(
-        borrowing,
-        request,
-        payment_type: str = "PAYMENT",
-        payment=None
-):
+        borrowing, request, payment_type: str = "PAYMENT", total=None
+) -> Payment:
 
-    if not payment:
-        payment = borrowing.book.daily_fee
+    if not total:
+        total = borrowing.book.daily_fee
 
     session = create_payment_session(borrowing, request, payment)
     Payment.objects.create(
