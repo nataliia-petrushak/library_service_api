@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from .models import Borrowing
-from book.models import amount_of_inventory
 from book.serializers import BookSerializer
 from payment.payment_session import create_payment
 from payment.serializers import (
@@ -21,10 +20,12 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         data = super(BorrowingSerializer, self).validate(attrs=attrs)
+        user_id = self.context["request"].user.id
         Borrowing.validate_inventory(
             attrs["book_id"],
             ValidationError
         )
+        Borrowing.validate_pending_payment(user_id, ValidationError)
         return data
 
     class Meta:
@@ -43,9 +44,8 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get("request")
-        book_id = validated_data.get("book_id")
-        amount_of_inventory(book_id)
         borrowing = Borrowing.objects.create(**validated_data)
+        borrowing.book.change_amount_of_inventory()
         create_payment(borrowing, request)
         return borrowing
 
