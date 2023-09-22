@@ -14,11 +14,9 @@ class Book(models.Model):
     )
     daily_fee = models.DecimalField(max_digits=5, decimal_places=2)
 
-
-def amount_of_inventory(book_id, increase=False):
-    book = get_object_or_404(Book, pk=book_id)
-    if increase:
-        book.inventory += 1
-    else:
-        book.inventory -= 1
-    book.save()
+    def change_amount_of_inventory(self, increase=False):
+        if increase:
+            self.inventory += 1
+        else:
+            self.inventory -= 1
+        self.save()
