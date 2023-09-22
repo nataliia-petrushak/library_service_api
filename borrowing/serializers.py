@@ -11,12 +11,6 @@ from payment.serializers import (
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
-    borrow_date = serializers.DateField(format="%Y-%m-%d", read_only=True)
-    actual_return_date = serializers.DateField(
-        format="%Y-%m-%d", read_only=True
-    )
-    expected_return_date = serializers.DateField(format="%Y-%m-%d")
-    payment = PaymentListSerializer(read_only=True, many=True)
 
     def validate(self, attrs):
         data = super(BorrowingSerializer, self).validate(attrs=attrs)
@@ -32,15 +26,9 @@ class BorrowingSerializer(serializers.ModelSerializer):
         model = Borrowing
         fields = (
             "id",
-            "borrow_date",
             "expected_return_date",
-            "actual_return_date",
             "book_id",
-            "user_id",
-            "payment",
         )
-        extra_kwargs = {
-            "user_id": {"read_only": True}}
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -50,10 +38,28 @@ class BorrowingSerializer(serializers.ModelSerializer):
         return borrowing
 
 
-class BorrowingDetailSerializer(BorrowingSerializer):
+class BorrowingListSerializer(serializers.ModelSerializer):
+    borrow_date = serializers.DateField(format="%Y-%m-%d")
     actual_return_date = serializers.DateField(format="%Y-%m-%d")
+    expected_return_date = serializers.DateField(format="%Y-%m-%d")
+    payments = PaymentListSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Borrowing
+        fields = (
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "actual_return_date",
+            "book_id",
+            "user_id",
+            "payments",
+        )
+
+
+class BorrowingDetailSerializer(BorrowingListSerializer):
     book = BookSerializer(read_only=True)
-    payment = PaymentDetailSerializer(read_only=True, many=True)
+    payments = PaymentDetailSerializer(read_only=True, many=True)
 
     class Meta:
         model = Borrowing
@@ -64,5 +70,5 @@ class BorrowingDetailSerializer(BorrowingSerializer):
             "actual_return_date",
             "book",
             "user_id",
-            "payment",
+            "payments",
         )

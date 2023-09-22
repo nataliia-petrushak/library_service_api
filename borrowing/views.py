@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from .permissions import IsAuthenticatedOrIsAdmin
 from .serializers import (
     BorrowingSerializer,
+    BorrowingListSerializer,
     BorrowingDetailSerializer
 )
 from .models import Borrowing
@@ -49,6 +50,8 @@ class BorrowingViewSet(
         return self.queryset
 
     def get_serializer_class(self):
+        if self.action == "list":
+            return BorrowingListSerializer
         if self.action == "retrieve":
             return BorrowingDetailSerializer
         return self.serializer_class
