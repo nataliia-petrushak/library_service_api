@@ -30,10 +30,18 @@ class Borrowing(models.Model):
         return get_object_or_404(Payment, borrowing_id=self.pk)
 
     @staticmethod
-    def validate_inventory(book_id, error_to_raise):
+    def validate_inventory(book_id: int, error_to_raise):
         book = get_object_or_404(Book, pk=book_id)
         if book.inventory < 1:
             raise error_to_raise("There are no books in inventory to borrow")
+
+    @staticmethod
+    def validate_pending_payment(user_id: int, error_to_raise):
+        payments = Payment.objects.filter(user_id=user_id, status="PENDING")
+
+        if payments.exists():
+            raise error_to_raise("You have pending payments. "
+                                 "Please finish them before borrowing a book.")
 
 
 @receiver(post_save, sender=Borrowing)
