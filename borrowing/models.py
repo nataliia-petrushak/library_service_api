@@ -43,7 +43,7 @@ class Borrowing(models.Model):
 
         if not payments.exists():
             raise error_to_raise("You have not finished your paying. "
-                                 "Please finish them before borrowing a book.")
+                                 "Please finish it before borrowing a new book.")
 
     @property
     def fine(self) -> int:
