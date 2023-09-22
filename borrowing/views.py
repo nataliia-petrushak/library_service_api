@@ -3,7 +3,6 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 
-from book.models import amount_of_inventory
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -60,7 +59,7 @@ def return_borrowing(request, pk):
     borrowing = get_object_or_404(Borrowing, pk=pk)
 
     if not borrowing.actual_return_date:
-        amount_of_inventory(borrowing.book_id, increase=True)
+        borrowing.book.change_amount_of_inventory(increase=True)
         borrowing.actual_return_date = date.today()
         borrowing.save()
         return Response(

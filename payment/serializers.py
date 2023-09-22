@@ -11,10 +11,8 @@ class PaymentSerializer(serializers.ModelSerializer):
             "status",
             "type",
             "borrowing_id",
-            "user_id",
             "money_to_pay"
         )
-        extra_kwargs = {"user_id": {"read_only": True}}
 
 
 class PaymentListSerializer(serializers.ModelSerializer):
