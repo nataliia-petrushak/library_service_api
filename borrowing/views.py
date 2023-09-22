@@ -68,7 +68,7 @@ def return_borrowing(request, pk):
         if borrowing.expected_return_date < borrowing.actual_return_date:
             fine = borrowing.fine
             create_payment(
-                borrowing, request, payment_type="FINE", payment=fine
+                borrowing, request, payment_type="FINE", total=fine
             )
 
         borrowing.book.change_amount_of_inventory(increase=True)
