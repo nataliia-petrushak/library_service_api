@@ -39,10 +39,10 @@ class Borrowing(models.Model):
 
     @staticmethod
     def validate_pending_payment(user_id: int, error_to_raise):
-        payments = Payment.objects.filter(user_id=user_id, status="PENDING")
+        payments = Payment.objects.filter(user_id=user_id, status="PAID")
 
-        if payments.exists():
-            raise error_to_raise("You have pending payments. "
+        if not payments.exists():
+            raise error_to_raise("You have not finished your paying. "
                                  "Please finish them before borrowing a book.")
 
     @property
