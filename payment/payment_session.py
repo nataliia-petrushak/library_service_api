@@ -4,7 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.reverse import reverse
 
-from .models import Payment
+from .models import Payment, StripeSession
 
 stripe.api_key = os.getenv("STRIPE_API_KEY")
 
@@ -32,7 +32,16 @@ def create_stripe_session(borrowing, request, total):
             reverse("payment:cancel-payment")
         )
     )
-    return session
+
+
+def create_model_stripe_session(borrowing, session, payment):
+    expiration_time = timezone.now() + timezone.timedelta(minutes=2)
+    StripeSession.objects.create(
+        session_id=session.id,
+        payment_id=payment.pk,
+        user_id=borrowing.user_id,
+        expiration_time=expiration_time
+    )
 
 
 def create_payment(
@@ -42,13 +51,18 @@ def create_payment(
     if not total:
         total = borrowing.book.daily_fee
 
-    session = create_payment_session(borrowing, request, payment)
-    Payment.objects.create(
-        status="PENDING",
-        type=payment_type,
-        borrowing_id=borrowing.id,
-        user_id=borrowing.user_id,
-        session_url=session.url,
-        session_id=session.id,
-        money_to_pay=payment
-    )
+    with transaction.atomic():
+        session = create_stripe_session(borrowing, request, total)
+
+        payment = Payment.objects.create(
+            status="PENDING",
+            type=payment_type,
+            borrowing_id=borrowing.id,
+            user_id=borrowing.user_id,
+            session_url=session.url,
+            session_id=session.id,
+            money_to_pay=total
+        )
+        create_model_stripe_session(borrowing, session, payment)
+
+        return payment
