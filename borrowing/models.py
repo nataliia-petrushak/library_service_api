@@ -11,6 +11,8 @@ from borrowing.management.commands.send_notification import notification
 
 
 class Borrowing(models.Model):
+    FINE_MULTIPLIER = 2
+
     borrow_date = models.DateField(auto_now_add=True)
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
@@ -26,11 +28,11 @@ class Borrowing(models.Model):
         return get_object_or_404(User, pk=self.user_id)
 
     @property
-    def payment(self) -> Payment:
-        return get_object_or_404(Payment, borrowing_id=self.pk)
+    def payments(self) -> Payment:
+        return Payment.objects.filter(borrowing_id=self.pk)
 
     @staticmethod
-    def validate_inventory(book_id: int, error_to_raise):
+    def validate_inventory(book_id, error_to_raise):
         book = get_object_or_404(Book, pk=book_id)
         if book.inventory < 1:
             raise error_to_raise("There are no books in inventory to borrow")
@@ -42,6 +44,13 @@ class Borrowing(models.Model):
         if payments.exists():
             raise error_to_raise("You have pending payments. "
                                  "Please finish them before borrowing a book.")
+
+    @property
+    def fine(self) -> int:
+        fine_per_day = 2
+        days = (self.actual_return_date - self.expected_return_date).days
+        fine_amount = days * fine_per_day * self.FINE_MULTIPLIER
+        return fine_amount
 
 
 @receiver(post_save, sender=Borrowing)
