@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf-spectacular",
     "book",
     "user",
     "borrowing",
@@ -85,10 +86,6 @@ WSGI_APPLICATION = "library_service.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.db.backends.sqlite3",
-    #     "NAME": BASE_DIR / "db.sqlite3",
-    # }
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB"),
@@ -145,7 +142,27 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Readify API",
+    "DESCRIPTION": "A Readify refers to a software project or system"
+                   " designed to manage and automate various aspects of"
+                   " library operations and services. Libraries serve"
+                   " as repositories of knowledge and information, "
+                   "and a Readify aims to enhance the efficiency, "
+                   "accessibility, and user experience within a "
+                   "library setting.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "defaultModelRendering": "model",
+        "defaultModelsExpandDepth": 2,
+        "defaultModelExpandDepth": 2,
+    },
 }
 
 SIMPLE_JWT = {
