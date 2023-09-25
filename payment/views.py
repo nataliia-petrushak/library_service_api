@@ -1,6 +1,6 @@
 import stripe
 from rest_framework import generics, viewsets, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -21,6 +21,9 @@ class PaymentViewSet(
     generics.RetrieveAPIView,
     viewsets.GenericViewSet
 ):
+    """Payment sessions will be created automatically with borrowing.
+    Users can see only their payment list and details of each one.
+    Admin can see all the payments."""
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
     permission_classes = (IsAuthenticated,)
@@ -43,6 +46,9 @@ class PaymentViewSet(
 
 @api_view(["GET"])
 def success_payment(request):
+    """With a successful transaction, users will get a
+    notification through the Telegram bot,
+    and payment changes the status to 'PAID'"""
     session_id = request.args.get("session_id")
     session = stripe.checkout.Session.retrieve(session_id)
 
@@ -55,6 +61,7 @@ def success_payment(request):
 
 @api_view(["GET"])
 def cancel_payment(request):
+    """With canceled payment users will get a message."""
     return Response({
         "message": "Payment failed. "
                    "Please proceed with the payment within 24 hours"
@@ -62,7 +69,10 @@ def cancel_payment(request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def renew_payment_session(request, pk):
+    """If the payment session has expired - users can renew it
+    with the creation of a new payment session."""
     old_payment = get_object_or_404(Payment, pk=pk)
     borrowing = get_object_or_404(Borrowing, pk=old_payment.borrowing_id)
 

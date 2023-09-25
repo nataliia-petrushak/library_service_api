@@ -1,4 +1,7 @@
 from datetime import date
+
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -19,6 +22,9 @@ from .models import Borrowing
 class BorrowingViewSet(
     viewsets.ModelViewSet
 ):
+    """Users can create a book borrowing, see their borrowings only,
+    and retrieve details of each one. They are forbidden to take a new book
+    if there is any pending payment. Admin can update and delete borrowings"""
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
     permission_classes = (IsAuthenticatedOrIsAdmin,)
@@ -56,10 +62,34 @@ class BorrowingViewSet(
             return BorrowingDetailSerializer
         return self.serializer_class
 
+    @extend_schema(
+        # Extra parameters added to filter
+        parameters=[
+            OpenApiParameter(
+                name="is_active",
+                description="Filter borrowings by actual_return_date "
+                            "(if it's None - borrowing is still active)"
+                            "ex. /?is_active=True",
+                type=OpenApiTypes.STR
+            ),
+            OpenApiParameter(
+                name="user_id",
+                description="Filter borrowings by user ids. For admin only."
+                            "(ex. /?user_id=1,2)",
+                type={"type": "list", "items": {"type": "number"}}
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def return_borrowing(request, pk):
+    """Users can return their books. If borrowing is overdue
+    - there will be a new payment with the type 'FINE' created. Also,
+    they can't return books twice."""
     borrowing = get_object_or_404(Borrowing, pk=pk)
 
     if not borrowing.actual_return_date:

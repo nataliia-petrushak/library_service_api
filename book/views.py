@@ -6,6 +6,8 @@ from .serializers import BookSerializer, BookListSerializer
 
 
 class BookViewSet(viewsets.ModelViewSet):
+    """Users can see the list of books, and the detail page of each one.
+    Only the admin can create a new book"""
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = (IsAdminOrReadOnly,)
