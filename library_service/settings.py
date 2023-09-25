@@ -42,13 +42,13 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_celery_beat",
+    "drf_spectacular",
     "rest_framework",
     "rest_framework_simplejwt",
-    "drf-spectacular",
     "book",
     "user",
     "borrowing",
-    "payment"
+    "payment",
 ]
 
 MIDDLEWARE = [
